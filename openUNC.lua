@@ -55,7 +55,7 @@ end
 
 print("\n")
 
-print("fUNC Environment Check")
+print("openUNC Environment Check")
 print("✅ - Pass, ⛔ - Fail, ⏺️ - No test, ⚠️ - Missing aliases\n")
 
 task.defer(function()
@@ -66,7 +66,7 @@ task.defer(function()
 
 	print("\n")
 
-	print("fUNC Summary")
+	print("openUNC Summary")
 	print("✅ Tested with a " .. rate .. "% success rate (" .. outOf .. ")")
 	print("⛔ " .. fails .. " tests failed")
 	print("⚠️ " .. undefined .. " globals are missing aliases")
@@ -165,6 +165,7 @@ test("getcallingscript", {}, function()
 		Keys={"Update","ShouldUseVehicleCamera"},
 	},true)
 
+	assert(typeof(cameraTable)=="table","cameraTable is not a table!")
 	local update=rawget(cameraTable,"Update")
 	assert(typeof(update)=="function","Update value from cameratable is not a function")
 	
@@ -590,7 +591,77 @@ test("mousescroll", {})
 
 test("fireclickdetector", {}, function()
 	local detector = Instance.new("ClickDetector")
+	local connection
+	local hasFired=false
+
+	connection=detector.MouseHoverEnter:Connect(function()
+		hasFired=true
+		detector:Destroy()
+		connection:Disconnect()
+		connection,detector=nil,nil
+	end)
+
 	fireclickdetector(detector, 50, "MouseHoverEnter")
+	assert(hasFired,"Click detector didnt get fired!")
+end)
+
+test("fireproximityprompt",{},function()
+	local part=Instance.new("Part")
+	local prompt=Instance.new("ProximityPrompt")
+	local connection
+	local hasFired=false
+
+	prompt.Parent=part
+	part.Parent=game:GetService("CoreGui")
+
+	connection=prompt.Triggered:Connect(function()
+		hasFired=true
+		prompt:Destroy()
+		part:Destroy()
+		connection:Disconnect()
+		connection,prompt,part=nil,nil,nil
+	end)
+
+	fireproximityprompt(prompt)
+	assert(hasFired,"ProximityPrompt didn't get fired!")
+end)
+
+test("firetouchinterest",{},function()
+	local lplr = game:GetService("Players").LocalPlayer
+	local player_head = lplr.Character and lplr.Character:FindFirstChild("Head") or nil
+	local connection,connection2
+
+	lplr=nil
+	assert(player_head,"You need to have a player character and head to test this function! (try running fUNC again after your character spawned correctly)")
+
+	local touchFired=false
+	local touchEndedFired=false
+	local dummy_part = Instance.new("Part")
+	dummy_part.CFrame = CFrame.new(0, -200, 0)
+	dummy_part.Anchored = true
+	dummy_part.Parent = workspace
+
+	connection=dummy_part.Touched:Connect(function(part)
+		if part~=player_head then return end
+		touchFired=true
+	end)
+
+	connection2=dummy_part.TouchEnded:Connect(function(part)
+		if part~=player_head then return end
+		touchEndedFired=true
+	end)
+
+	firetouchinterest(player_head, dummy_part, 0)
+	firetouchinterest(player_head, dummy_part, 1)
+	task.wait(1)
+
+	dummy_part:Destroy()
+	connection:Disconnect()
+	connection2:Disconnect()
+	dummy_part,connection,connection2,player_head=nil,nil,nil,nil
+
+	assert(touchFired,"Touched didn't get fired!")
+	assert(touchEndedFired,"TouchEnded didn't get fired!")
 end)
 
 test("getcallbackvalue", {}, function()
@@ -599,6 +670,18 @@ test("getcallbackvalue", {}, function()
 	end
 	bindable.OnInvoke = test
 	assert(getcallbackvalue(bindable, "OnInvoke") == test, "Did not return the correct value")
+end)
+
+test("firesignal",{},function()
+	local bind=Instance.new("BindableEvent")
+	local fireArg
+
+	bind.Event:Connect(function(args)
+		fireArg=args
+	end)
+
+	firesignal(bind.Event,"hi")
+	assert(fireArg=="hi",`fireArg should be set to "hi" immediately regardles of SignalBehavior`)
 end)
 
 test("getconnections", {}, function()
