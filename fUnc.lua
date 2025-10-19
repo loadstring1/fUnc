@@ -55,7 +55,7 @@ end
 
 print("\n")
 
-print("UNC Environment Check")
+print("fUNC Environment Check")
 print("✅ - Pass, ⛔ - Fail, ⏺️ - No test, ⚠️ - Missing aliases\n")
 
 task.defer(function()
@@ -66,7 +66,7 @@ task.defer(function()
 
 	print("\n")
 
-	print("UNC Summary")
+	print("fUNC Summary")
 	print("✅ Tested with a " .. rate .. "% success rate (" .. outOf .. ")")
 	print("⛔ " .. fails .. " tests failed")
 	print("⚠️ " .. undefined .. " globals are missing aliases")
