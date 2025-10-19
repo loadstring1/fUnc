@@ -26,3 +26,15 @@ changelog:
 - added fireproximityprompt test
 - added firetouchinterest test
 - added firesignal test
+- added newlclosure test
+- removed dofile check (its useless and we already have loadfile anyways)
+- added canreplicatesignal test
+- added getrendersteppedlist check
+- added isnetworkowner test
+- improved getinstances test
+- improved getnilinstances test
+- added clear_teleport_queue check
+- improved getloadedmodules test (currently thats commented out bc potassium crashes when i do that and i dont have other executors than potassium)
+- added run_on_actor check
+- added getactors check
+- added get_comm_channel check
