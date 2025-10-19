@@ -1,4 +1,4 @@
-# fUnc (fixed  Unc)
+# openUNC (open source  UNC)
 used for testing exploit capability
 
 tutorial how to run
