@@ -12,6 +12,13 @@ loadstring(request({Url="https://raw.githubusercontent.com/loadstring1/fUnc/refs
 loadstring(game:HttpGet("https://raw.githubusercontent.com/loadstring1/fUnc/refs/heads/main/fUnc.lua"))()
 ```
 
+changelog: 
 19.10.2025
 - fixed WebSocket test connecting to a websocket that doesn't even work
 - fixed getscriptclosure test failing because of non-existant Constants module that roblox removed ages ago from CoreGui
+- added filtergc test
+- added getcallingscript test
+- added restorefunction test
+- added getfunctionhash test
+- added getreg test
+- improved getgc test
