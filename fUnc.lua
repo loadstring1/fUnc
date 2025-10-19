@@ -160,7 +160,40 @@ test("clonefunction", {}, function()
 	assert(test ~= copy, "The clone should not be equal to the original")
 end)
 
-test("getcallingscript", {})
+test("getcallingscript", {}, function()
+	local cameraTable=filtergc("table",{
+		Keys={"Update","ShouldUseVehicleCamera"},
+	},true)
+
+	local update=rawget(cameraTable,"Update")
+	assert(typeof(update)=="function","Update value from cameratable is not a function")
+	
+	local playerscripts=game:GetService("Players").LocalPlayer:FindFirstChildOfClass("PlayerScripts") or nil
+	local cameramodule=playerscripts and playerscripts:FindFirstChild("PlayerModule") and playerscripts:FindFirstChild("PlayerModule"):FindFirstChild("CameraModule") or nil
+
+	playerscripts=nil
+	assert(cameramodule,"Unable to find CameraModule (you should join empty baseplate game because this game has its own custom cameramodule)")
+
+	local callingscript
+	local org;org=hookfunction(update,newlclosure(function(...)
+		if not callingscript then
+			callingscript=getcallingscript()
+		end
+		return org(...)
+	end))
+	
+	local clock=os.clock()
+	repeat task.wait(1) until callingscript or os.clock()-clock>20
+	restorefunction(update)
+
+	assert(cameramodule==callingscript,"Calling script is not CameraModule")
+	assert(typeof(callingscript)=="Instance","Calling script is not a Instance")
+	assert(typeof(cameramodule)=="Instance","Camera module is not a Instance")
+	assert(callingscript:IsA("ModuleScript"),"Calling script is not a ModuleScript")
+	assert(cameramodule:IsA("ModuleScript"),"Camera module is not a ModuleScript")
+
+	cameramodule,callingscript,update,cameraTable=nil,nil,nil,nil
+end)
 
 test("getscriptclosure", {"getscriptfunction"}, function()
 	local module = game:GetService("CoreGui").RobloxGui.Modules.Common.AvatarChatConstants
@@ -180,6 +213,37 @@ test("hookfunction", {"replaceclosure"}, function()
 	assert(test() == false, "Function should return false")
 	assert(ref() == true, "Original function should return true")
 	assert(test ~= ref, "Original function should not be same as the reference")
+end)
+
+test("restorefunction",{},function()
+	local function dummy_func()
+		return "I am not hooked!"
+	end
+
+	assert(dummy_func()=="I am not hooked!", `Function should return "I am not hooked!"`)
+	
+	hookfunction(dummy_func,function() return "I am hooked!" end)
+	assert(dummy_func()=="I am hooked!", `Function should return "I am hooked!"`)
+	
+	restorefunction(dummy_func)
+	assert(dummy_func()=="I am not hooked!", `Function should return "I am not hooked!"`)
+end)
+
+test("getfunctionhash",{},function()
+	local function is_sha384_hex(hash)
+		return #hash == 96 and hash:match("^[0-9a-fA-F]+$") ~= nil
+	end
+
+	local dummy_function_0 = function() end
+	local dummy_function_1 = function(...) end
+	local dummy_function_2 = function() end
+	local dummy_function_3 = function() return "Constant" end
+	local dummy_function_4 = function() return "Constant2" end
+
+	assert(is_sha384_hex(getfunctionhash(dummy_function_0))==true,"Function didn't return sha384 hex")
+	assert(getfunctionhash(dummy_function_0) ~= getfunctionhash(dummy_function_1),"Function 0 hash shouldn't match function 1 hash")
+	assert(getfunctionhash(dummy_function_0) == getfunctionhash(dummy_function_2),"Function 0 hash should match function 2 hash")
+	assert(getfunctionhash(dummy_function_3) ~= getfunctionhash(dummy_function_4),"Function 3 hash shouldn't match function 4 hash")
 end)
 
 test("iscclosure", {}, function()
@@ -724,8 +788,92 @@ end)
 
 test("getgc", {}, function()
 	local gc = getgc()
-	assert(type(gc) == "table", "Did not return a table")
+
+	assert(typeof(gc) == "table", "Did not return a table")
 	assert(#gc > 0, "Did not return a table with any values")
+
+	local dummy_table={}
+	local function dummy_function()end
+	local dummy_proxy=newproxy(false)
+	
+	local foundTrue=0
+	local foundFalse=0
+
+	for i,v in getgc(true) do
+		if v==dummy_table or v==dummy_function or v==dummy_proxy then
+			foundTrue+=1
+		end
+	end
+
+	for i,v in getgc(false) do
+		if v==dummy_table or v==dummy_function or v==dummy_proxy then
+			foundFalse+=1
+		end
+	end
+
+	assert(foundFalse==2,"Failed to find dummyfunction and dummyproxy or found too many values in getgc(false)")
+	assert(foundTrue==3, "Failed to find dummytable and dummyfunction and dummyproxy in getgc")
+end)
+
+test("getreg", {}, function()
+	local loop_thread = task.spawn(function()
+		while task.wait(1) do
+			print("I am still running...")
+		end
+	end)
+
+	for _, value in getreg() do
+		if value ~= loop_thread then continue end
+
+		coroutine.close(value)
+		assert(coroutine.status(value)=="dead","value thread status should be dead")
+		break
+	end
+
+	assert(coroutine.status(loop_thread)=="dead","Loop thread status should be dead")
+end)
+
+test("filtergc",{},function()
+	local function filtergcExample() return "hello from filtergc" end
+	local exampleTable={["filtergcExample"]="cool"}
+
+	local funcs={
+		example=filtergc("function",{
+			Name="filtergcExample",
+			IgnoreExecutor=false,
+		},true),
+		cameraFunc=filtergc("function",{
+			Name="ActivateCameraController",
+			IgnoreExecutor=true,
+		},true)
+	}
+
+	local tables={
+		example=filtergc("table",{
+			Keys={"filtergcExample"},
+			Values={"cool"},
+		},true),
+		cameraTable=filtergc("table",{
+			Keys={"activeCameraController"},
+		},true)
+	}
+
+	assert(typeof(funcs.example)=="function","Example value from filtergc is not a function!")
+	assert(typeof(funcs.cameraFunc)=="function","Camera value from filtergc is not a function!")
+
+	assert(isexecutorclosure(funcs.example),"Example function from filtergc should be executor closure.")
+	assert(isexecutorclosure(funcs.cameraFunc)==false, "Camera function should not be executor closure.")
+	assert(funcs.example()==filtergcExample(), "Example function from filtergc didn't return same thing as the local function.")
+	assert(funcs.example==filtergcExample,"Example function from filtergc isn't the same as the local function")
+
+	assert(typeof(tables.example)=="table","Example value from filtergc is not a table!")
+	assert(tables.example==exampleTable,"Example table from filtergc doesn't match local exampleTable")
+	assert(rawget(tables.example,"filtergcExample")=="cool","Example table from filtergc - filtergcExample key is not equal to cool string.")
+
+	assert(typeof(tables.cameraTable)=="table","Camera value from filtergc is not a table!")
+	local rawMeta=getrawmetatable(tables.cameraTable)
+	assert(typeof(rawget(rawMeta,"new"))=="function","new value is not a function from camera metatable.")
+	assert(isexecutorclosure(rawget(rawMeta,"new"))==false,"new function from camera metatable should not be executor closure.")
 end)
 
 test("getgenv", {}, function()
