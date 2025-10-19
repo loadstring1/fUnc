@@ -283,6 +283,16 @@ test("newcclosure", {}, function()
 	assert(iscclosure(testC), "New C closure should be a C closure")
 end)
 
+test("newlclosure",{},function()
+	local function test()
+		return true
+	end
+	local testL = newlclosure(test)
+	assert(test() == testL(), "New L closure should return the same value as the original")
+	assert(test ~= testL, "New L closure should not be same as the original")
+	assert(islclosure(testL), "New L closure should be a L closure")
+end)
+
 -- Console
 
 test("rconsoleclear", {"consoleclear"})
@@ -561,7 +571,7 @@ test("loadfile", {}, function()
 	assert(err and not callback, "Did not return an error message for a compiler error")
 end)
 
-test("dofile", {})
+--test("dofile", {}) useless no one needs this and we already have loadfile()
 
 -- Input
 
@@ -684,6 +694,16 @@ test("firesignal",{},function()
 	assert(fireArg=="hi",`fireArg should be set to "hi" immediately regardles of SignalBehavior`)
 end)
 
+test("canreplicatesignal",{},function()
+	assert(canreplicatesignal(game:GetService("Players").LocalPlayer.Kill),"Kill should be possible to replicate.")
+end)
+
+test("getrendersteppedlist",{})
+
+test("isnetworkowner",{},function()
+	assert(isnetworkowner(game:GetService("Players").LocalPlayer.Character.HumanoidRootPart),"HumanoidRootPart should be network owner.")
+end)
+
 test("getconnections", {}, function()
 	local types = {
 		Enabled = "boolean",
@@ -733,12 +753,20 @@ test("gethui", {}, function()
 end)
 
 test("getinstances", {}, function()
+	local part=Instance.new("Part")
 	assert(getinstances()[1]:IsA("Instance"), "The first value is not an Instance")
+	assert(table.find(getinstances(),part),"Nil part not found in getinstances")
+	part:Destroy()
+	part=nil
 end)
 
 test("getnilinstances", {}, function()
+	local part=Instance.new("Part")
 	assert(getnilinstances()[1]:IsA("Instance"), "The first value is not an Instance")
 	assert(getnilinstances()[1].Parent == nil, "The first value is not parented to nil")
+	assert(table.find(getnilinstances(),part),"Nil part not found in getnilinstances")
+	part:Destroy()
+	part=nil
 end)
 
 test("isscriptable", {}, function()
@@ -835,6 +863,7 @@ end)
 test("messagebox", {})
 
 test("queue_on_teleport", {"queueonteleport"})
+test("clear_teleport_queue",{})
 
 test("request", {"http.request", "http_request"}, function()
 	local response = request({
@@ -966,11 +995,15 @@ test("getgenv", {}, function()
 end)
 
 test("getloadedmodules", {}, function()
+	--[[local loaded=Instance.new("ModuleScript")
+	pcall(require,loaded)]]
+
 	local modules = getloadedmodules()
 	assert(type(modules) == "table", "Did not return a table")
 	assert(#modules > 0, "Did not return a table with any values")
 	assert(typeof(modules[1]) == "Instance", "First value is not an Instance")
 	assert(modules[1]:IsA("ModuleScript"), "First value is not a ModuleScript")
+	--assert(table.find(modules,loaded),"Loaded module not found in getloadedmodules")
 end)
 
 test("getrenv", {}, function()
@@ -1100,3 +1133,10 @@ test("WebSocket.connect", {}, function()
 	end
 	ws:Close()
 end)
+
+--parallel
+test("run_on_actor",{})
+
+test("getactors",{})
+
+test("get_comm_channel",{})
