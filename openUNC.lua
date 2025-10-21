@@ -309,11 +309,11 @@ test("rconsolesettitle", {"rconsolename", "consolesettitle"})
 
 -- Crypt
 
-test("crypt.base64encode", {"crypt.base64.encode", "crypt.base64_encode", "base64.encode", "base64_encode","base64encode"}, function()
+test("base64encode", {"crypt.base64.encode", "crypt.base64_encode", "base64.encode", "base64_encode"}, function()
 	assert(base64encode("test") == "dGVzdA==", "Base64 encoding failed")
 end)
 
-test("crypt.base64decode", {"crypt.base64.decode", "crypt.base64_decode", "base64.decode", "base64_decode","base64decode"}, function()
+test("base64decode", {"crypt.base64.decode", "crypt.base64_decode", "base64.decode", "base64_decode"}, function()
 	assert(base64decode("dGVzdA==") == "test", "Base64 decoding failed")
 end)
 
@@ -694,8 +694,8 @@ test("firesignal",{},function()
 	assert(fireArg=="hi",`fireArg should be set to "hi" immediately regardles of SignalBehavior`)
 end)
 
-test("canreplicatesignal",{},function()
-	assert(canreplicatesignal(game:GetService("Players").LocalPlayer.Kill),"Kill should be possible to replicate.")
+test("cansignalreplicate",{"canreplicatesignal"},function()
+	assert(cansignalreplicate(game:GetService("Players").LocalPlayer.Kill),"Kill should be possible to replicate.")
 end)
 
 test("getrendersteppedlist",{})
@@ -923,8 +923,8 @@ test("getgc", {}, function()
 		end
 	end
 
-	assert(foundFalse==2,"Failed to find dummyfunction and dummyproxy or found too many values in getgc(false)")
-	assert(foundTrue==3, "Failed to find dummytable and dummyfunction and dummyproxy in getgc")
+	assert(foundFalse==1,"Failed to find dummyfunction, getgc(false) should only have functions and no proxies or tables.")
+	assert(foundTrue==3, "Failed to find dummytable and dummyfunction and dummyproxy in getgc(true)")
 end)
 
 test("getreg", {}, function()
