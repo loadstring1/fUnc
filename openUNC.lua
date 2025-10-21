@@ -309,11 +309,11 @@ test("rconsolesettitle", {"rconsolename", "consolesettitle"})
 
 -- Crypt
 
-test("base64encode", {"crypt.base64.encode", "crypt.base64_encode", "base64.encode", "base64_encode"}, function()
+test("base64encode", {"crypt.base64.encode", "crypt.base64_encode", "base64.encode", "base64_encode","crypt.base64encode"}, function()
 	assert(base64encode("test") == "dGVzdA==", "Base64 encoding failed")
 end)
 
-test("base64decode", {"crypt.base64.decode", "crypt.base64_decode", "base64.decode", "base64_decode"}, function()
+test("base64decode", {"crypt.base64.decode", "crypt.base64_decode", "base64.decode", "base64_decode","crypt.base64decode"}, function()
 	assert(base64decode("dGVzdA==") == "test", "Base64 decoding failed")
 end)
 
