@@ -642,7 +642,7 @@ test("firetouchinterest",{},function()
 	local connection,connection2
 
 	lplr=nil
-	assert(player_head,"You need to have a player character and head to test this function! (try running fUNC again after your character spawned correctly)")
+	assert(player_head,"You need to have a player character and head to test this function! (try running openUNC again after your character spawned correctly)")
 
 	local touchFired=false
 	local touchEndedFired=false
@@ -1140,3 +1140,5 @@ test("run_on_actor",{})
 test("getactors",{})
 
 test("get_comm_channel",{})
+
+test("create_comm_channel",{})
